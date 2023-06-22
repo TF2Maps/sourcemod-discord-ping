@@ -11,13 +11,13 @@
 #define QUERY_SET_MAP_PLAYED  "UPDATE maps SET status='played', played=now() WHERE map='%s' AND status='pending'"
 
 #define WEBHOOK_NAME "maplistbridge"
-#define WEBHOOK_DATA "{\"username\": \"Mecha Engineer\", \"content\": \"<@%s> %s is currently being played on steam://connect/%s:27015 with %d players.\"}"
+#define WEBHOOK_DATA "{\"username\": \"Mecha Engineer\", \"content\": \"<@%s> %s is currently being played on https://bot.tf2maps.net/%s with %d players.\"}"
 
 public Plugin myinfo = {
 	name = "Map List Bridge",
 	author = "Mr. Burguers",
 	description = "Operations related to the map list",
-	version = "1.0",
+	version = "1.1",
 	url = "https://tf2maps.net/home/"
 };
 
