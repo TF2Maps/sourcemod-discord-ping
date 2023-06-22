@@ -17,7 +17,7 @@ public Plugin myinfo = {
 	name = "Map List Bridge",
 	author = "Mr. Burguers",
 	description = "Operations related to the map list",
-	version = "1.1",
+	version = "1.2",
 	url = "https://tf2maps.net/home/"
 };
 
@@ -39,7 +39,7 @@ bool g_bMapRemoved;
 int g_iConnectedPlayers;
 
 public void OnPluginStart() {
-	g_hCVarServerIP = CreateConVar("maplistbridge_ip", "example.com", "IP address sent in the Steam connection URL.", 0);
+	g_hCVarServerIP = CreateConVar("maplistbridge_ip", "unknown", "Server redirection page on the bot URL.", 0);
 	g_hCVarMinPlayers = CreateConVar("maplistbridge_players", "4", "Minimum players to consider the map as played.", 0, true, 1.0, true, 32.0);
 
 	g_hTVEnabled = FindConVar("tv_enable");
@@ -84,15 +84,17 @@ void OnMapDataRetrieved(Database db, DBResultSet results, const char[] error, an
 
 	results.FetchString(0, g_sDiscordID, sizeof(g_sDiscordID));
 	results.FetchString(1, g_sMapURL, sizeof(g_sMapURL));
-	if (results.IsFieldNull(2)) {
-		g_bHasNotes = false;
-	} else {
+	g_bHasNotes = false;
+	if (!results.IsFieldNull(2)) {
 		results.FetchString(2, g_sMapNotes, sizeof(g_sMapNotes));
-		// Replace ending with "(...)" if notes didn't fit
-		if (strlen(g_sMapNotes) == sizeof(g_sMapNotes) - 1) {
-			strcopy(g_sMapNotes[sizeof(g_sMapNotes) - 6], 6, "(...)");
+		int iNoteLength = strlen(g_sMapNotes);
+		if (iNoteLength > 0) {
+			g_bHasNotes = true;
+			// Replace ending with "(...)" if notes didn't fit
+			if (iNoteLength == sizeof(g_sMapNotes) - 1) {
+				strcopy(g_sMapNotes[sizeof(g_sMapNotes) - 6], 6, "(...)");
+			}
 		}
-		g_bHasNotes = true;
 	}
 
 	g_bDataLoaded = true;

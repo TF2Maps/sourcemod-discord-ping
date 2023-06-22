@@ -11,7 +11,7 @@ Features:
 - Install the [Discord API](https://forums.alliedmods.net/showthread.php?t=292663) plugin
 - Add a `maplist` connection to SourceMod's `configs/databases.cfg`
 - Add a `maplistbridge` webhook URL to `configs/discord.cfg`
-- Set the `maplistbridge_ip` ConVar to the server's IP (eg. `eu.tf2maps.net`)
+- Set the `maplistbridge_ip` ConVar to the server's page on `https://bot.tf2maps.net/` (e.g. `eu-server`)
 
 Optional:
 - Change `maplistbridge_players` (default `4`) to set the number of players required to consider the map played
