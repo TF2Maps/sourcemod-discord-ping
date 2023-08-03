@@ -17,7 +17,7 @@ public Plugin myinfo = {
 	name = "Map List Bridge",
 	author = "Mr. Burguers",
 	description = "Operations related to the map list",
-	version = "1.2",
+	version = "1.3",
 	url = "https://tf2maps.net/home/"
 };
 
@@ -36,7 +36,6 @@ char g_sMapNotes[240];
 
 bool g_bDataLoaded;
 bool g_bMapRemoved;
-int g_iConnectedPlayers;
 
 public void OnPluginStart() {
 	g_hCVarServerIP = CreateConVar("maplistbridge_ip", "unknown", "Server redirection page on the bot URL.", 0);
@@ -119,36 +118,48 @@ void CheckMap(Event event, const char[] name, bool dontBroadcast) {
 		return;
 	}
 
-	g_iConnectedPlayers = GetConnectedPlayers();
+	int iConnectedPlayers = GetConnectedPlayers();
 	int iPlayersNeeded = g_hCVarMinPlayers.IntValue;
-	if (g_iConnectedPlayers >= iPlayersNeeded) {
+	if (iConnectedPlayers >= iPlayersNeeded) {
 		g_bMapRemoved = true;
-		RemoveMapFromQueue();
+
+		// Make snapshot of data to prevent map change race condition
+		DataPack hData = new DataPack();
+		hData.WriteString(g_sMapName);
+		hData.WriteString(g_sDiscordID);
+		hData.WriteCell(iConnectedPlayers);
+		hData.Reset();
+
+		char sQuery[1024];
+		g_hConn.Format(sQuery, sizeof(sQuery), QUERY_SET_MAP_PLAYED, g_sMapName);
+		g_hConn.Query(OnMapRemovedFromQueue, sQuery, hData);
 	}
 }
 
-void RemoveMapFromQueue() {
-	char sQuery[1024];
-	g_hConn.Format(sQuery, sizeof(sQuery), QUERY_SET_MAP_PLAYED, g_sMapName);
-	g_hConn.Query(OnMapRemovedFromQueue, sQuery);
-}
-
-void OnMapRemovedFromQueue(Database db, DBResultSet results, const char[] error, any data) {
+void OnMapRemovedFromQueue(Database db, DBResultSet results, const char[] error, DataPack data) {
 	if (results == null) {
 		LogError("MapListBridge SQL error - %s", error);
 		g_bMapRemoved = false;
+		delete data;
 		return;
 	}
 
-	SendDiscordMessage();
+	SendDiscordMessage(data);
 }
 
-void SendDiscordMessage() {
+void SendDiscordMessage(DataPack data) {
 	char sServerIP[64];
 	g_hCVarServerIP.GetString(sServerIP, sizeof(sServerIP));
 
+	char sMapName[64];
+	data.ReadString(sMapName, sizeof(sMapName));
+	char sDiscordID[64];
+	data.ReadString(sDiscordID, sizeof(sDiscordID));
+	int iConnectedPlayers = data.ReadCell();
+	delete data;
+
 	char sBody[1024];
-	Format(sBody, sizeof(sBody), WEBHOOK_DATA, g_sDiscordID, g_sMapName, sServerIP, g_iConnectedPlayers);
+	Format(sBody, sizeof(sBody), WEBHOOK_DATA, sDiscordID, sMapName, sServerIP, iConnectedPlayers);
 
 	Discord_SendMessage(WEBHOOK_NAME, sBody);
 }
