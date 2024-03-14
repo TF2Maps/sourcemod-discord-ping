@@ -104,13 +104,13 @@ void SendNotes(Event event, const char[] name, bool dontBroadcast) {
 		return;
 	}
 
+	PrintToChatAll("\x04Map Thread\x01: %s", g_sMapURL);
+
 	if (g_bHasNotes) {
 		PrintToChatAll("\x01------- \x04Map Notes \x01-------");
 		PrintToChatAll("%s", g_sMapNotes);
 		PrintToChatAll("-------------------------");
 	}
-
-	PrintToChatAll("\x04Map Thread\x01: %s", g_sMapURL);
 }
 
 void CheckMap(Event event, const char[] name, bool dontBroadcast) {
